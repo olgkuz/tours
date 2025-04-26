@@ -1,5 +1,7 @@
-import { Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { DeleteResult } from 'mongoose';
 import { UsersService } from 'src/services/users/users.service';
+import { User } from 'src/shemas/user';
 
 @Controller('users')
 export class UsersController {
@@ -7,27 +9,27 @@ export class UsersController {
 
      }
      @Get()
-      getUsers(): string {
+      getAllUsers(): Promise<User[]> {
         return this.userService.getAllUsers();
       }
       @Get(":id")
-      getUserById(@Param('id') id): string {
+      getUserById(@Param('id') id:string): Promise<User | null> {
         return this.userService.getUserById(id);
       }
       @Post()
-      sendUsers(): string {
-        return this.userService.sendUsers();
+      sendUser(@Body()data): Promise<User > {
+        return this.userService.sendUser(data);
       }
-      @Put()
-      updateUsers(): string {
-        return this.userService.updateUsers();
+      @Put(":id")
+      updateUsers(@Param('id')id): Promise<User | null> {
+        return this.userService.updateUsers(id);
       }
       @Delete()
-      deleteUsers(): string {
-        return this.userService.deleteUsers();
-      }
+      deleteUsers(): Promise<DeleteResult> {
+      return this.userService.deleteUsers();
+}
       @Delete(":id")
-      deleteUserById(@Param('id') id): string {
+      deleteUserById(@Param('id') id): Promise<User |null>{
         return this.userService.deleteUserById(id);
       }
       
