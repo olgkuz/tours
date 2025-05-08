@@ -15,7 +15,7 @@ export class UsersService {
         return this.userModel.find();
     }
  
-    async getUserById(id:string): Promise<User| null> {
+    async getUserById(id:string): Promise<User | null> {
         return this.userModel.findById(id);
     }
  
@@ -24,7 +24,7 @@ export class UsersService {
         return userData.save();
     }
  
-    async updateUsers(id: string, body:any): Promise<User|null> {
+    async updateUsers(id: string, body:any): Promise<User | null> {
         return this.userModel.findByIdAndUpdate(id, body);
     }
  

@@ -1,9 +1,10 @@
-import {Body, Controller, Delete, Get, Param, Post, Put, Query} from '@nestjs/common';
+import {Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query} from '@nestjs/common';
 import {UsersService} from "../../services/users/users.service";
 import {User} from "../../shemas/user";
 import {UserDto} from "../../dto/user-dto";
 import RejectedValue = jest.RejectedValue;
 import { DeleteResult } from 'mongoose';
+import { error } from 'console';
  
 @Controller('users')
 export class UsersController {
@@ -21,16 +22,23 @@ export class UsersController {
         return this.userService.getUserById(id);
     }
  
-     @Post()
+    @Post()
     sendUser(@Body() data: UserDto): Promise<User> {
         return this.userService.checkRegUser(data.login).then((queryRes) => {
             if (queryRes.length === 0) {
              return this.userService.sendUser(data);
             } else {
-             return Promise.reject('User already exists');
+                console.log('err - user is exists')
+                throw new HttpException( {
+                    status: HttpStatus.CONFLICT,
+                    errorText: 'Пользователь уже зарегистрирован',
+                },HttpStatus.CONFLICT);
+            }
+                });
+             
       }
-    });
-  }
+    
+    
  
     @Post(":login")
     authUser(@Body() data: UserDto, @Param('login') login:string): Promise<User | boolean>  {
@@ -39,14 +47,17 @@ export class UsersController {
                 return Promise.resolve(true);
             } else {
                 console.log('err - user is exists')
-                return Promise.reject();
+                throw new HttpException( {
+                    status: HttpStatus.CONFLICT,
+                    errorText: 'Пользователь не найден в базе',
+                },HttpStatus.CONFLICT);
             }
-        });
- 
-    }
+                });
+             
+      }
  
     @Put(":id")
-    updateUsers(@Param('id') id:string, @Body() data:any) : Promise<User|null> {
+    updateUsers(@Param('id') id:string, @Body() data:any) : Promise<User | null> {
         return this.userService.updateUsers(id, data);
     }
  
