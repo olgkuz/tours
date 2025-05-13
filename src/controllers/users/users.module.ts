@@ -10,7 +10,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategyService } from 'src/services/authentication/jwt-strategy/jwt-strategy.service';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])
+  imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
             PassportModule,
             JwtModule.register({
               secret: jwtConstant.secret,

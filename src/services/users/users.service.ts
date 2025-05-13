@@ -38,8 +38,8 @@ export class UsersService {
         return this.userModel.findByIdAndDelete(id);
       }
  
-    async checkAuthUser(login: string, psw: string) : Promise<User[]> {
-        const usersArr = await this.userModel.find({login:login,psw:psw});
+    async checkAuthUser(login: string, psw: string) : Promise<User[] | null> {
+        const usersArr = await this.userModel.find({login:login, psw:psw});
         return usersArr.length === 0 ? null : usersArr;
     }
  
@@ -50,7 +50,7 @@ export class UsersService {
     async login (user: UserDto) {
         const payload = {login: user.login, psw: user.psw};
         return {
-            access_token:this.jwtService.sign(payload),
+            access_token: this.jwtService.sign(payload),
         };
     }
 }

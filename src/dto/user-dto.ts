@@ -5,6 +5,5 @@ export class UserDto implements IUser {
     cardNumber: string;
     login: string;
     email: string;
-    id: string; //-- добавить
-
+    id: string; 
  }

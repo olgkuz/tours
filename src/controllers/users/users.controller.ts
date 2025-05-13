@@ -6,6 +6,7 @@ import RejectedValue = jest.RejectedValue;
 import { DeleteResult } from 'mongoose';
 import { error } from 'console';
 import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from 'src/services/authentication/jwt-auth.guard/jwt-auth.guard.service';
  
 @Controller('users')
 export class UsersController {
@@ -22,7 +23,7 @@ export class UsersController {
     getUserById(@Param('id') id:string): Promise<User|null> {
         return this.userService.getUserById(id);
     }
- 
+    @UseGuards(JwtAuthGuard)
     @Post()
     sendUser(@Body() data: UserDto): Promise<User> {
         return this.userService.checkRegUser(data.login).then((queryRes) => {
@@ -40,10 +41,10 @@ export class UsersController {
       }
     
     
-    @UseGuards(AuthGuard('local')) 
+   // @UseGuards(AuthGuard('local')) 
     @Post(":login")
     authUser(@Body() data: UserDto, @Param('login') login:string): Promise<any>  {
-        return this.userService.login(data) 
+        return this.userService.login(data);
        // return this.userService.checkAuthUser(data.login, data.psw).then((queryRes) => {
       //      if (queryRes.length !== 0) {
        //         return Promise.resolve(true);

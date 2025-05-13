@@ -1,4 +1,4 @@
-import { ToursService} from 
+
 
 
 import { PassportModule } from '@nestjs/passport';
@@ -9,10 +9,11 @@ import { ToursController } from './tours.controller';
 import { Tour, TourSchema } from 'src/shemas/tour';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
+import { ToursService } from 'src/services/tours/tours.service';
 
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Tour.name, schema: TourSchema }])
+  imports: [MongooseModule.forFeature([{ name: Tour.name, schema: TourSchema }]),
             PassportModule,
             JwtModule.register({
               secret: jwtConstant.secret,
