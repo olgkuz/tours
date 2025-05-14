@@ -23,7 +23,7 @@ export class UsersController {
     getUserById(@Param('id') id:string): Promise<User|null> {
         return this.userService.getUserById(id);
     }
-    @UseGuards(JwtAuthGuard)
+    //@UseGuards(JwtAuthGuard)
     @Post()
     sendUser(@Body() data: UserDto): Promise<User> {
         return this.userService.checkRegUser(data.login).then((queryRes) => {
@@ -41,22 +41,11 @@ export class UsersController {
       }
     
     
-   // @UseGuards(AuthGuard('local')) 
+    @UseGuards(AuthGuard('local')) 
     @Post(":login")
-    authUser(@Body() data: UserDto, @Param('login') login:string): Promise<any>  {
+    authUser(@Body() data: UserDto, @Param('login') login:string): any  {
         return this.userService.login(data);
-       // return this.userService.checkAuthUser(data.login, data.psw).then((queryRes) => {
-      //      if (queryRes.length !== 0) {
-       //         return Promise.resolve(true);
-       //     } else {
-       //         console.log('err - user is exists')
-       //         throw new HttpException( {
-       //             status: HttpStatus.CONFLICT,
-        //            errorText: 'Пользователь не найден в базе',
-       //         },HttpStatus.CONFLICT);
-      //      }
-       //         });
-             
+      
       }
  
     @Put(":id")
