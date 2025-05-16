@@ -29,9 +29,7 @@ export class ToursService {
     return createdTours;
   }
 
-  async getAllTours(): Promise<ITour[]> {
-    return this.tourModel.find();
-  }
+ 
 
   async getTourById(id: string): Promise<ITour | null> {
     return this.tourModel.findById(id);

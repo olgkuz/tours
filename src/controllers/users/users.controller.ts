@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards, UsePipes} from '@nestjs/common';
 import {UsersService} from "../../services/users/users.service";
 import {User} from "../../shemas/user";
 import {UserDto} from "../../dto/user-dto";
@@ -7,6 +7,7 @@ import { DeleteResult } from 'mongoose';
 import { error } from 'console';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from 'src/services/authentication/jwt-auth.guard/jwt-auth.guard.service';
+import { UserAuthPipe } from 'src/pipes/user-auth.pipe';
  
 @Controller('users')
 export class UsersController {
@@ -41,9 +42,9 @@ export class UsersController {
       }
     
     
-    @UseGuards(AuthGuard('local')) 
+    //@UseGuards(AuthGuard('local')) 
     @Post(":login")
-    authUser(@Body() data: UserDto, @Param('login') login:string): any  {
+    authUser(@Body(UserAuthPipe) data: UserDto, @Param('login') login:string): any  {
         return this.userService.login(data);
       
       }
