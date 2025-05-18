@@ -12,4 +12,11 @@ export class OrderService {
         const orderData = new this.orderModel(data);
         return orderData.save();
     }
+    async getOrders(): Promise<Order[]>{
+        return this.orderModel.find();
+
+    }
+    async getOrdersByUserId(id:string): Promise<Order[]>{
+        return this.orderModel.find({userId:id});
+    }
 }
