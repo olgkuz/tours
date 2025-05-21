@@ -34,6 +34,9 @@ export class ToursService {
   async getTourById(id: string): Promise<ITour | null> {
     return this.tourModel.findById(id);
   }
+  async getAllTours(): Promise<ITour[]> {
+  return this.tourModel.find();
+  }
 
   async deleteTours(): Promise<DeleteResult> {
     return this.tourModel.deleteMany();

@@ -20,6 +20,10 @@ export class ToursController {
   getTourById(@Param('id',ValidationParamIdPipe) id: string): Promise<ITour | null> {
     return this.toursService.getTourById(id);
   }
+  @Get()
+  getAllTours(): Promise<ITour[]> {
+  return this.toursService.getAllTours();
+}
 
   @Delete()
    removeAllTours(): void {
