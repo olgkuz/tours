@@ -1,11 +1,15 @@
 import {
   Body, Controller, Delete, Get, HttpException, HttpStatus,
-  Param, Post, Put
+  Param, Post, Put,
+  UseGuards
 } from '@nestjs/common';
 import { UsersService } from '../../services/users/users.service';
 import { User } from '../../shemas/user';
 import { UserDto } from '../../dto/user-dto';
 import { DeleteResult } from 'mongoose';
+import { UserAuthPipe } from 'src/pipes/user-auth.pipe';
+import { IUser } from 'src/interfaces/user';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 export class UsersController {
@@ -22,10 +26,10 @@ export class UsersController {
   }
 
   @Post()
-  sendUser(@Body() data: UserDto): Promise<{ id: string; access_token: string }> {
-    return this.userService.checkRegUser(data.login).then((res) => {
-      if (res.length === 0) {
-        return this.userService.sendUser(data);
+  registerUser(@Body(UserAuthPipe) data: UserDto): Promise<IUser> {
+    return this.userService.checkRegUser(data.login).then((queryRes) => {
+      if (queryRes.length === 0) {
+        return this.userService.registerUser(data);
       } else {
         throw new HttpException({
           status: HttpStatus.CONFLICT,
@@ -34,9 +38,9 @@ export class UsersController {
       }
     });
   }
-
+  //@UseGuards(AuthGuard('local'))
   @Post('login')
-  authUser(@Body() data: UserDto): any {
+  authUser(@Body(UserAuthPipe) data: UserDto): any {
     return this.userService.login(data);
   }
 

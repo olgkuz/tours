@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, DeleteResult } from 'mongoose';
 import { Tour, TourDocument } from 'src/shemas/tour';
 import { TourDto } from 'src/dto/tour-dto';
-import { ITour } from 'src/interfaces/tour';
+import { ITour, ITourClient } from 'src/interfaces/tour';
 
 @Injectable()
 export class ToursService {
@@ -20,7 +20,8 @@ export class ToursService {
         'test tour ' + i,
         'tour description',
         'tour operator',
-        '300' + i
+        '300' + i,
+        'img'
       );
       const tourData = new this.tourModel(tour);
       await tourData.save();
@@ -36,6 +37,11 @@ export class ToursService {
   }
   async getAllTours(): Promise<ITour[]> {
   return this.tourModel.find();
+  }
+  async uploadTour(body:ITourClient){
+    const tour = new TourDto (body.name, body.description, body.tourOperator,body.price,body.img)
+    const tourData = new this.tourModel(tour);
+    await tourData.save();
   }
 
   async deleteTours(): Promise<DeleteResult> {

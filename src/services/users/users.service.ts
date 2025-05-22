@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, DeleteResult } from 'mongoose';
 import { User, UserDocument } from '../../shemas/user';
 import { UserDto } from '../../dto/user-dto';
 import { JwtService } from '@nestjs/jwt';
+import { IUser } from 'src/interfaces/user';
+import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class UsersService {
@@ -22,21 +24,22 @@ export class UsersService {
     return this.userModel.findById(id);
   }
 
-  async sendUser(data: UserDto): Promise<{ id: string; access_token: string }> {
-    const userData = new this.userModel(data);
-    const savedUser = await userData.save();
+  async registerUser(user: UserDto): Promise<IUser> {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(user.psw, salt);
+    console.log('hashedPassword', hashedPassword)
 
-    const payload = { login: savedUser.login, psw: savedUser.psw };
-    const access_token = this.jwtService.sign(payload);
-
-    return {
-      id: savedUser._id.toString(),
-      access_token,
-    };
+    const newUser:IUser = {...user, psw:hashedPassword}
+    const userData =new this.userModel(newUser);
+    return userData.save()
   }
 
-  async updateUsers(id: string, body: any): Promise<User | null> {
-    return this.userModel.findByIdAndUpdate(id, body, { new: true });
+  async updateUsers(id: string, user: IUser): Promise<User | null> {
+    const salt = await bcrypt.genSalt();
+    const hashedPsw = await bcrypt.hash(user.psw, salt);
+    const hashUser = Object.assign({},user,{psw:hashedPsw})
+
+    return this.userModel.findByIdAndUpdate(id, hashUser);
   }
 
   async deleteUsers(): Promise<DeleteResult> {
@@ -48,14 +51,25 @@ export class UsersService {
   }
 
   async checkAuthUser(login: string, psw: string): Promise<User[] | null> {
-    const usersArr = await this.userModel.find({ login, psw });
-    return usersArr.length === 0 ? null : usersArr;
+    const usersArr =<IUser[]> await this.userModel.find<IUser>({ login });
+    if (usersArr.length === 0){
+      throw new BadRequestException('Логин указан неверно');}
+      const isMatch: boolean = bcrypt.compareSync(psw, usersArr[0].psw)
+      if(!isMatch) {
+        throw new BadRequestException( 'Пароль указан неверно')
+      }
+
+
+    return Promise.resolve(usersArr);
+  }
+  async getUserByLogin(login:string):Promise<IUser| null> {
+    return this.userModel.findOne({login});
   }
 
  async checkRegUser(login: string): Promise<User[]> {
-  const existing = await this.userModel.find({ login });
-  console.log('🔍 Проверка login:', login, '— найдено:', existing.length);
-  return existing;
+  
+ 
+  return this.userModel.find({ login });
 }
 
 
