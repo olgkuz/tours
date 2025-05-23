@@ -7,8 +7,8 @@ import { UserDocument } from './user';
 export type OrderDocument = HydratedDocument<Order>
  
 @Schema()
-export class Order implements IOrder {
-  
+export class Order {
+   
 
     @Prop({type: mongoose.Schema.Types.ObjectId,ref:'Tour'}) tourId: TourDocument;
 

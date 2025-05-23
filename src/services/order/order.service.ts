@@ -26,7 +26,7 @@ export class OrderService {
         return orderData.save();
     }
     async getOrders(from,to): Promise<ICustomOrderReturnType>{
-        return this.orderModel.find<OrderDocument>().limit(to).skip(from).then((order:)=>{
+        return this.orderModel.find<OrderDocument>().limit(to).skip(from).then((order)=>{
             return this.getOrdersWithUser(order);
         });
 
@@ -37,7 +37,7 @@ export class OrderService {
         const orderData: ICustomOrder[]=[]
         return this.orderModel.find<OrderDocument>().limit(to).skip(from)
         .populate({path:'userId',select:['login','_id']})
-        .populate({path:'tourId'}).then(data)=> {
+        .populate({path:'tourId'}).then((data)=> {
             data.filter((order)=>{
                 const userScore = order.userId;
                 return userScore._id.equals(id);
@@ -68,8 +68,8 @@ export class OrderService {
                     tour:tourInfo,
                 } as ICustomOrder;
                 userData.push(newOrderInfo)
-            }
-        } ))
+            
+        } 
             return {data:userData,count: orderCount} as ICustomOrderReturnType;
     }
 }
