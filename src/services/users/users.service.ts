@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, DeleteResult } from 'mongoose';
+import { Model, DeleteResult, Promise } from 'mongoose';
 import { User, UserDocument } from '../../shemas/user';
 import { UserDto } from '../../dto/user-dto';
 import { JwtService } from '@nestjs/jwt';
-import { IUser } from 'src/interfaces/user';
+import { IResponseUser, IUser } from 'src/interfaces/user';
 import * as bcrypt from 'bcrypt'
+import { resolve } from 'path';
+import { IRoute } from 'express';
 
 @Injectable()
 export class UsersService {
@@ -24,14 +26,16 @@ export class UsersService {
     return this.userModel.findById(id);
   }
 
-  async registerUser(user: UserDto): Promise<IUser> {
+  async registerUser(user: UserDto): Promise<boolean> {
+    const defaultRole = 'user';
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(user.psw, salt);
     console.log('hashedPassword', hashedPassword)
 
-    const newUser:IUser = {...user, psw:hashedPassword}
+    const newUser:IUser = {...user, psw:hashedPassword,role:defaultRole}
     const userData =new this.userModel(newUser);
-    return userData.save()
+     userData.save()
+     return Promise.resolve(true)
   }
 
   async updateUsers(id: string, user: IUser): Promise<User | null> {
@@ -74,17 +78,20 @@ export class UsersService {
 
 
   async login(user: UserDto) {
-    const payload = { login: user.login, psw: user.psw };
-    const userFromDb = await this.userModel.find({ login: user.login });
-
-    if (!userFromDb.length) {
-      throw new Error('Пользователь не найден');
-    }
+    
+    const userFromDb =<IUser> await this.userModel.findOne({ login: user.login });
+    const payload = { login: user.login, psw: user.psw, role:userFromDb?.role,_id:userFromDb?._id };
 
     return {
-      id: userFromDb[0]._id,
+      id: userFromDb._id,
       access_token: this.jwtService.sign(payload),
-    };
+      role:userFromDb.role
+    } as IResponseUser;
+  }
+
+  extractTokenFromHeader(request:Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split('')??[];
+    return type ==== 'Bearer' ? token : undefined;
   }
 }
 

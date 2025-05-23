@@ -1,15 +1,16 @@
-import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ITour, ITourClient } from 'src/interfaces/tour';
 import { ToursService } from 'src/services/tours/tours.service';
 import {diskStorage} from "multer"
+import { RolesGuard } from 'src/guards/roles/roles.guard';
 
 @Controller('tour-iteam')
 export class TourIteamController {
     constructor(private tourService:ToursService){}
 
     static imgName: string;
-
+    @UseGuards(RolesGuard)
     @Post()
     @UseInterceptors(FileInterceptor('img', {
 

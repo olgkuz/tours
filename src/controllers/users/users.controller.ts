@@ -26,7 +26,7 @@ export class UsersController {
   }
 
   @Post()
-  registerUser(@Body(UserAuthPipe) data: UserDto): Promise<IUser> {
+  registerUser(@Body(UserAuthPipe) data: UserDto): Promise<boolean> {
     return this.userService.checkRegUser(data.login).then((queryRes) => {
       if (queryRes.length === 0) {
         return this.userService.registerUser(data);
@@ -38,7 +38,7 @@ export class UsersController {
       }
     });
   }
-  //@UseGuards(AuthGuard('local'))
+  @UseGuards(AuthGuard('local'))
   @Post('login')
   authUser(@Body(UserAuthPipe) data: UserDto): any {
     return this.userService.login(data);
