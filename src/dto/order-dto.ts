@@ -1,55 +1,56 @@
-import { IsDateString, isDateString, IsInt, IsNotEmpty, IsString, Matches, Max, MaxLength, Min, MinLength, ValidateNested } from "class-validator";
-import {IOrder, IOrderPerson} from "../interfaces/order";
-import { Type } from "class-transformer";
+import {
+  IsInt,
+  IsNotEmpty,
+  IsDateString,
+  IsString,
+  Matches,
+  Max,
+  Min,
+  MaxLength,
+  MinLength,
+  ValidateNested
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class OrderPersonDto implements IOrderPerson {
-    birthData: string;
-    @IsInt()
-    @Min(18)
-    @Max(100)
-    @IsNotEmpty()
-    age:number;
+export class OrderPersonDto {
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(30)
+  firstname: string;
 
-    @IsNotEmpty()
-    @IsDateString()
-    birthDay: string;
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(30)
+  lastname: string;
 
-    @IsNotEmpty()
-    @IsString()
-    @MinLength( 3)
-    @MaxLength( 30)
-    lastname: string;
+  @IsNotEmpty()
+  @Matches(/^\d{12,14}$/)
+  cardNumber: string;
 
-    @IsNotEmpty()firstname: string;
-    @IsNotEmpty()citizenship: string;
+  @IsNotEmpty()
+  @IsString()
+  citizenship: string;
 
-    @IsNotEmpty()
-    @Matches(/^\d{12,14}$/)
-    cardNumber: string;
+  @IsNotEmpty()
+  @IsDateString()
+  birthData: string;
 
+  @IsNotEmpty()
+  @IsInt()
+  @Min(18)
+  @Max(100)
+  age: number;
 }
-export class OrderDto implements IOrder {
-   
-   
-   
-    @IsNotEmpty()tourId: string;
-    //@IsNotEmpty()userId: string;
-    @ValidateNested()
-    @Type( ()=> OrderPersonDto)
-    orderPerson: IOrderPerson;
-    
 
+export class OrderDto {
+  @IsNotEmpty()
+  @IsString()
+  tourId: string;
 
-//constructor (age: string,birthDay: string,cardNumber: string,tourId: string,userId: string){
-    //this.age = age;
-    //this.birthDay = birthDay;
-    //this.cardNumber=cardNumber;
-    //this.tourId=tourId;
-    //this.userId=userId;
-
-//}
-
- 
-    
-
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => OrderPersonDto)
+  orderPerson: OrderPersonDto;
 }

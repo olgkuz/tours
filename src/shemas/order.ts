@@ -1,22 +1,36 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { IOrder, IOrderPerson } from 'src/interfaces/order';
-import { TourDocument } from './tour';
-import { UserDocument } from './user';
- 
-export type OrderDocument = HydratedDocument<Order>
- 
+
+export type OrderDocument = HydratedDocument<Order>;
+
 @Schema()
 export class Order {
-   
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Tour', required: true })
+  tourId: mongoose.Schema.Types.ObjectId;
 
-    @Prop({type: mongoose.Schema.Types.ObjectId,ref:'Tour'}) tourId: TourDocument;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
+  userId: mongoose.Schema.Types.ObjectId;
 
-    @Prop({type: mongoose.Schema.Types.ObjectId,ref:'User'}) userId: UserDocument;
+  @Prop({
+    type: {
+      firstname: String,
+      lastname: String,
+      cardNumber: String,
+      birthData: String,
+      age: Number,
+      citizenship: String,
+    },
+    required: true
+  })
+  orderPerson: {
+    firstname: string;
+    lastname: string;
+    cardNumber: string;
+    birthData: string;
+    age: number;
+    citizenship: string;
+  };
+}
 
-    @Prop ({type:Object}) orderPerson: IOrderPerson;
-   
- 
-      
+export const OrderSchema = SchemaFactory.createForClass(Order);
 
- }   export const OrderSchema = SchemaFactory.createForClass(Order);

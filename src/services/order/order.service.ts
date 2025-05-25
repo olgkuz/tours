@@ -1,75 +1,89 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
-import { use } from 'passport';
-import { OrderDto, OrderPersonDto } from 'src/dto/order-dto';
+import { Model } from 'mongoose';
+import { OrderDto } from 'src/dto/order-dto';
 import { IOrderPerson } from 'src/interfaces/order';
-import { Order, OrderDocument} from 'src/shemas/order';
+import { Order, OrderDocument } from 'src/shemas/order';
 import { TourDocument } from 'src/shemas/tour';
 import { UserDocument } from 'src/shemas/user';
+
 export interface ICustomOrder {
-    orderPerson:IOrderPerson
-    user:{login:string, id: mongoose.Types.ObjectId},
-    tour:TourDocument
+  orderPerson: IOrderPerson;
+  user: { login: string; id: string };
+  tour: TourDocument;
 }
+
 export interface ICustomOrderReturnType {
-    data: ICustomOrder [],
-    count:number
+  data: ICustomOrder[];
+  count: number;
 }
+
+// Расширяем тип Order после populate
+type PopulatedOrder = Omit<Order, 'userId' | 'tourId'> & {
+  userId: UserDocument;
+  tourId: TourDocument;
+};
 
 @Injectable()
 export class OrderService {
-    constructor(@InjectModel(Order.name)private orderModel:Model<OrderDocument>){}
+  constructor(
+    @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+    @InjectModel('User') private userModel: Model<UserDocument>,
+    @InjectModel('Tour') private tourModel: Model<TourDocument>
+  ) {}
 
-    async sendOrder(data:OrderDto) : Promise<Order> {
-        const orderData = new this.orderModel(data);
-        return orderData.save();
-    }
-    async getOrders(from,to): Promise<ICustomOrderReturnType>{
-        return this.orderModel.find<OrderDocument>().limit(to).skip(from).then((order)=>{
-            return this.getOrdersWithUser(order);
-        });
+  async sendOrder(data: OrderDto): Promise<Order> {
+    const orderData = new this.orderModel(data);
+    return orderData.save();
+  }
 
-    }
-    async getOrdersByUserId(id:string,from:number,to:number): Promise<ICustomOrderReturnType>{
-        const orders = await this.orderModel.find<OrderDocument>().exec();
-        const orderCount = orders.filter((order)=>order.userId._id.equals(id)).length;
-        const orderData: ICustomOrder[]=[]
-        return this.orderModel.find<OrderDocument>().limit(to).skip(from)
-        .populate({path:'userId',select:['login','_id']})
-        .populate({path:'tourId'}).then((data)=> {
-            data.filter((order)=>{
-                const userScore = order.userId;
-                return userScore._id.equals(id);
-            }).forEach((order)=>{
-                const userScore = order.userId;
-                const tourScore = order.tourId;
-                const newOrderInfo = {
-                    orderPerson:order.orderPerson,
-                    user:{ login:userScore.login,id:userScore._id},
-                    tour:tourScore,
-                } as ICustomOrder
-                orderData.push(newOrderInfo)
-            });
-            return{data:orderData,count:orderCount} as ICustomOrderReturnType;
-        }
-    }
-    async getOrdersWithUser(orders:OrderDocument[]): Promise <ICustomOrderReturnType> {
-        let userData: ICustomOrder []=[];
-        const orderCount = await this.orderModel.countDocuments().exec();
+  async getOrders(from: number, to: number): Promise<ICustomOrderReturnType> {
+    const orders = await this.orderModel
+      .find()
+      .skip(from)
+      .limit(to)
+      .populate('userId', ['login', '_id'])
+      .populate('tourId')
+      .exec();
 
-        await Promise.all(orderCount.map(async order => {
-            const userInfo = await this.userModel.findById<UserDocument>(order.userId).exec();
-            const tourInfo = await this.tourModel.findById<TourDocument>(order.tourId).exec();
-            if (userInfo) {
-                const newOrderInfo = {
-                    orderPerson: order.orderPerson,
-                    user:{login:userInfo.login,id:userInfo._id},
-                    tour:tourInfo,
-                } as ICustomOrder;
-                userData.push(newOrderInfo)
-            
-        } 
-            return {data:userData,count: orderCount} as ICustomOrderReturnType;
-    }
+    const data: ICustomOrder[] = (orders as unknown as PopulatedOrder[]).map(order => ({
+      orderPerson: order.orderPerson,
+      user: {
+        login: order.userId.login,
+        id: order.userId._id.toString(),
+      },
+      tour: order.tourId,
+    }));
+
+    const count = await this.orderModel.countDocuments();
+
+    return { data, count };
+  }
+
+  async getOrdersByUserId(
+    id: string,
+    from: number,
+    to: number
+  ): Promise<ICustomOrderReturnType> {
+    const orders = await this.orderModel
+      .find({ userId: id })
+      .skip(from)
+      .limit(to)
+      .populate('userId', ['login', '_id'])
+      .populate('tourId')
+      .exec();
+
+    const data: ICustomOrder[] = (orders as unknown as PopulatedOrder[]).map(order => ({
+      orderPerson: order.orderPerson,
+      user: {
+        login: order.userId.login,
+        id: order.userId._id.toString(),
+      },
+      tour: order.tourId,
+    }));
+
+    const count = await this.orderModel.countDocuments({ userId: id });
+
+    return { data, count };
+  }
 }
